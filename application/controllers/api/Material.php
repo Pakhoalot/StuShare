@@ -8,6 +8,9 @@
 
 class Material extends CI_Controller
 {
+    /**
+     * Material constructor.
+     */
     public function __construct()
     {
         parent::__construct();
@@ -16,9 +19,10 @@ class Material extends CI_Controller
         $this->cors();
 
 
+
     }
     public function index(){
-
+        echo 'you have accessed this materiral api!';
     }
 
     public function upload()
@@ -77,8 +81,13 @@ class Material extends CI_Controller
     /*
      * 接下来是本类用到的private函数
      */
+
+
+    /*
+     * 跨域函数
+     */
     private function cors(){
         header("Access-Control-Allow-Origin: * ");
-        header("Access-Control-Allow-Method:POST,GET");//允许的方法
+        header("Access-Control-Allow-Method:POST,GET,PATCH,PUT,OPTIONS");//允许的方法
     }
 }

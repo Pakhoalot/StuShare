@@ -17,22 +17,21 @@ class User extends CI_Controller
     }
 
     public function index(){
-
+        echo 'you have accessed user api!';
     }
     /*
      * 注册接口
      */
     public function register(){
         //获取注册信息
-        $user['username'] = $this->input->post('username');
-        $user['user_id']    = $this->input->post('user_id');
+        $user['email'] = $this->input->post('email');
+        $user['nickname'] = $this->input->post('nickname');
         $user['password'] = $this->input->post('password');
-        $user['phone'] = $this->input->post('phone');
-        $user['type'] = $this->input->post('type');
+
 
         //检查是否存在用户
         $message = $this->check($user);
-        if($message != 'OK'){
+        if($message == 'OK'){
             //合法，可以注册
             $result = $this->users_model->create_user($user);
             $json = array('status'=> 1,
@@ -65,13 +64,15 @@ class User extends CI_Controller
      */
     private function check($user){
         $message = NULL;
-        if(!$this->users_model->is_exist($user)){
+        if($this->users_model->user_exist($user)){
             $message = 'user exist';
             return $message;
         }
-        if(!$this->users_model->username_exist($user)){
-
+        if($this->users_model->nickname_exist($user)){
+            $message = 'nickname exist';
+            return $message;
         }
+        $message = 'OK';
         return $message;
     }
 

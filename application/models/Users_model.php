@@ -17,15 +17,29 @@ class Users_model extends CI_Model
     public function create_user($user){
         #构造query数组
         $query_data = $user;
-        $query = $this->db->insert('table_name', $query_data);
+        $query_data['credit'] = 0;
+        $query_data['role'] = 1;
+        $query_data['likes'] = 0;
+        $query = $this->db->insert('user_info', $query_data);
     }
 
-    public function is_exist($user)
+    public function user_exist($user)
     {
         $query_data = array(
-            $user_id = $user['user_id']
+            $email = $user['email']
         );
-        $query = $this->db->get_where('table_name',$query_data);
+        $query = $this->db->get_where('user_info',$query_data);
+        if (empty($query->result_array()))
+            return false;
+        return true;
+
+    }
+    public function nickname_exist($user)
+    {
+        $query_data = array(
+            $nickname = $user['nickname']
+        );
+        $query = $this->db->get_where('user_info',$query_data);
         if (empty($query->result_array()))
             return false;
         return true;
