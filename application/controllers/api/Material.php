@@ -20,9 +20,10 @@ class Material extends CI_Controller
         $this->load->helper('download');
         Util::cors();
 
-
     }
-
+    /*
+     *
+     */
     public function index(){
         echo 'you have accessed this materiral api!';
     }
@@ -92,7 +93,7 @@ class Material extends CI_Controller
             #写入tag
             $tag_array = explode(',', $tag);
             foreach($tag_array as $tag){
-
+                if($tag == NULL) continue;
                 $this->materials_model->set_material_tag($material['id'], $tag);
             }
             #接口返回成功信息
@@ -114,11 +115,15 @@ class Material extends CI_Controller
 
 
     }
-
+    /*
+     *
+     */
     public function download(){
         $file_id = $this->input->post('file_id');
-        $material = $this->materials_model->get_file_by_id($file_id);
+        $material = $this->materials_model->get_material_by_id($file_id);
         if(isset($material['full_path']) && $material['state']=='exist'){
+            #添加下载量
+            $this->materials_model->download_times_increase($material['id']);
             force_download($material['full_path'], NULL, true);
             $json = array(
                 'status' => 1,
@@ -144,7 +149,9 @@ class Material extends CI_Controller
         }
 
     }
-
+    /*
+     *
+     */
     public function show(){
         $sort_by = $this->input->post('sort_by');
         $offset = $this->input->post('offset');
@@ -168,20 +175,24 @@ class Material extends CI_Controller
             'sort_by' => $sort_by,
             'offset' => $offset,
             'total_row' => $total_row,
-            'data' => array()
+            'material_list' => array()
         );
         $result_array = $this->materials_model->get_material_list($sort_by, $offset, $total_row);
 
         $row = 1;
         foreach ($result_array as $material){
-            array_push($json['data'], array(
+            $material_detail = $this->materials_model->get_detail_by_id($material['id']);
+            array_push($json['material_list'], array(
                 'index'=> $row,
                 'file_id'=>$material['id'],
                 'file_name'=>$material['file_name'],
                 'owner' => $material['owner'],
                 'size' => $material['size'],
                 'type' => $material['type'],
-                'uptime' => $material['uptime']
+                'uptime' => $material['uptime'],
+                'description'=>$material_detail['description'],
+                'flowers' => $material_detail['flowers'],
+                'download_times' => $material_detail['download_times']
             ));
             $row++;
         }
@@ -189,7 +200,9 @@ class Material extends CI_Controller
         echo json_encode($json);
 
     }
-
+    /*
+     *
+     */
     public function set_description(){
         $material_id = $this->input->post('material_id');
         $description = $this->input->post('description');
@@ -220,12 +233,59 @@ class Material extends CI_Controller
         echo json_encode($json);
     }
 
+    public function get_detail_by_id(){
+        $id = $this->input->post('material_id');
+        $material = $this->materials_model->get_material_by_id($id);
+        $material_detail = $this->materials_model->get_detail_by_id($id);
+
+        if(empty($material)||empty($material_detail)){
+            $json = array(
+                'status'=> 0,
+                'message'=> 'no such file',
+                'file_id'=>$material['id'],
+            );
+            echo json_encode($json);
+            return ;
+        }
+        $json = array(
+            'status'=> 1,
+            'message'=> 'succeed',
+            'file_id'=>$material['id'],
+            'file_name'=>$material['file_name'],
+            'owner' => $material['owner'],
+            'size' => $material['size'],
+            'type' => $material['type'],
+            'uptime' => $material['uptime'],
+            'description'=>$material_detail['description'],
+            'flowers' => $material_detail['flowers'],
+            'download_times' => $material_detail['download_times']
+        );
+
+        echo json_encode($json);
+    }
+    /*
+     *
+     */
     public function set_tag(){
 
         $material_id = $this->input->post('material_id');
         $tag = $this->input->post('tag');
 
         $tag_array = explode(',', $tag);
+        #检查material是否存在
+        if (!$this->is_exist_by_id($material_id)){
+            #构造失败信息
+            $json = array(
+                'status' => 0,
+                'message' => 'no such material',
+                'material_id'=> $material_id,
+                'tag'=> $tag_array
+            );
+            echo json_encode($json);
+            return;
+        }
+
+        #插入到数据库
         foreach($tag_array as $tag){
 
             $this->materials_model->set_material_tag($material_id, $tag);
@@ -234,6 +294,7 @@ class Material extends CI_Controller
         $json = array(
             'status' => 1,
             'message' => 'succeed',
+            'material_id' => $material_id,
             'tag' => $tag_array
         );
         echo json_encode($json);
@@ -244,7 +305,7 @@ class Material extends CI_Controller
         $filename = $this->input->post('file_name');
         $email = $this->input->post('email');
 
-        $material = $this->materials_model->get_file_by_name_and_owner($filename, $email);
+        $material = $this->materials_model->get_material_by_name_and_owner($filename, $email);
 
         if(empty($material)){
             $json = array(
@@ -268,16 +329,15 @@ class Material extends CI_Controller
         echo json_encode($json);
     }
 
+
+
+    /*
+     * 接下来是本类用到的private函数
+     */
     private function is_exist_by_id($material_id)
     {
         $material = $this->materials_model->get_material_by_id($material_id);
         return !(empty($material)||$material['state'] != 'exist');
     }
-
-    /*
-     * 接下来是本类用到的private函数
-     */
-
-
 
 }
