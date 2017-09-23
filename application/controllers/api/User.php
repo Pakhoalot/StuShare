@@ -5,6 +5,7 @@
  * Date: 9/18/17
  * Time: 10:16 AM
  */
+include 'Util.php';
 
 class User extends CI_Controller
 {
@@ -14,7 +15,8 @@ class User extends CI_Controller
         $this->load->model('users_model');
         $this->load->helper('url');
         $this->load->library('session');
-        $this->cors();
+        $this->load->helper('cookie');
+        Util::cors();
     }
 
     public function index(){
@@ -55,23 +57,34 @@ class User extends CI_Controller
         $message = $this->login_check($user);
         if($message == 'OK'){
             //合法,登录
-            $json = array('status'=> 1,
-                'message'=> $message);
-            echo json_encode($json);
 
             //设置session
+
+//            $sessionid = $this->session->session_id;
+
+
+
             $user = $this->users_model->get_user($user['email']);
 
-            $_SESSION['email']      = $user['email'];
-            $_SESSION['nickname']     = $user['nickname'];
-            $_SESSION['logged_in']    = true;
-            $_SESSION['role']     = $user['role'];
+            $this->set_session($user);
+            $json = array(
+                'status'=> 1,
+                'message'=> $message,
+//                'cookie_token'=> $cookie,
+//                'ci_session'=> $sessionid
+            );
+            echo json_encode($json);
+
+
 
         }
         else {
             //密码错误或账户不存在
-            $json = array('status'=> 0,
-                'message'=> $message);
+            $json = array(
+                'status'=> 0,
+                'message'=> $message,
+                'email' => $user['email'],
+                'password'=>$user['password']);
             echo json_encode($json);
         }
     }
@@ -84,15 +97,15 @@ class User extends CI_Controller
         echo json_encode($json);
     }
 
-
-    public function is_login(){
-        if(isset($_SESSION['logged_in']) && $_SESSION['logged_in']){
+    public function get_user(){
+        if(Util::is_login()){
             $json = array(
                 'status'=> 1,
                 'message'=> 'logged_in',
                 'user' => array(
                     'email' => $_SESSION['email'],
-                    'nickname' => $_SESSION['nickname']),
+                    'nickname' => $_SESSION['nickname'],
+                    'role' => $_SESSION['role'])
             );
             echo json_encode($json);
         }
@@ -103,14 +116,12 @@ class User extends CI_Controller
             );
             echo json_encode($json);
         }
-
     }
     /*
      *
      *  以下是内部使用的函数，不属于向外暴露的接口
      *
      */
-
     private function register_check($user){
         $message = NULL;
         if($this->users_model->user_exist($user)){
@@ -139,8 +150,13 @@ class User extends CI_Controller
         $message = 'OK';
         return $message;
     }
-    private function cors(){
-        header("Access-Control-Allow-Origin: * ");
-        header("Access-Control-Allow-Method:POST,GET,PATCH,PUT,OPTIONS");//允许的方法
+
+    private function set_session($user)
+    {
+        $_SESSION['email']      = $user['email'];
+        $_SESSION['nickname']     = $user['nickname'];
+        $_SESSION['logged_in']    = true;
+        $_SESSION['role']     = $user['role'];
     }
+
 }

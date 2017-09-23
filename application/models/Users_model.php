@@ -23,12 +23,19 @@ class Users_model extends CI_Model
         $query = $this->db->insert('user_info', $query_data);
     }
 
+    public function get_user($email)
+    {
+        $query_data['email'] = $email;
+        $query = $this->db->get_where('user_info', $query_data);
+        return $query->row_array();
+    }
+
     public function user_exist($user)
     {
         $query_data = array(
-            $email = $user['email']
+            'email' => $user['email']
         );
-        $query = $this->db->get_where('user_info',$query_data);
+        $query = $this->db->get_where('user_info', $query_data);
         if (empty($query->result_array()))
             return false;
         return true;
@@ -37,13 +44,26 @@ class Users_model extends CI_Model
     public function nickname_exist($user)
     {
         $query_data = array(
-            $nickname = $user['nickname']
+            'nickname' => $user['nickname']
         );
         $query = $this->db->get_where('user_info',$query_data);
         if (empty($query->result_array()))
             return false;
         return true;
 
+    }
+
+    public function password_incorrect($user)
+    {
+        $query_data = array(
+            'email' => $user['email'],
+            'password' => $user['password']
+        );
+
+        $query = $this->db->get_where('user_info', $query_data);
+        if(empty($query->result_array()))
+            return true;
+        return false;
     }
 
 }

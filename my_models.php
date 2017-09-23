@@ -19,8 +19,7 @@
  * @property film_model1      $film_model1
  * @property Materials_model  $materials_model
  * @property Users_model      $users_model
- *
- *
+ * @property Tags_model       $tags_model
  */
 class my_models
 {
