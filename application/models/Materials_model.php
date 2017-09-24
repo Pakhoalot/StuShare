@@ -74,10 +74,10 @@ class Materials_model extends CI_Model
     public function set_material_description($material_id, $description)
     {
         $query_data = array(
-            'material_id' => $material_id,
             'description' => $description
         );
-        $this->db->replace('material_detail', $query_data);
+        $this->db->where('material_id', $material_id);
+        $this->db->update('material_detail', $query_data);
 
     }
 
@@ -92,7 +92,6 @@ class Materials_model extends CI_Model
         if(empty($query->row_array())){
             $this->db->insert('material_tag', $query_data);
         }
-
     }
 
     public function create_tag($tag)
@@ -101,6 +100,26 @@ class Materials_model extends CI_Model
             'tag' => $tag
         );
         $this->db->replace('tag', $query_data);
+
+    }
+
+    public function get_detail_by_id($id)
+    {
+        $query_data = array(
+            'material_id' => $id,
+        );
+        $query = $this->db->get_where('material_detail', $query_data);
+        return $query->row_array();
+    }
+
+    public function download_times_increase($id)
+    {
+        $material_detail = $this->get_detail_by_id($id);
+        $query_data = array(
+            'download_times' => ++$material_detail['download_times']
+        );
+        $this->db->where('material_id', $id);
+        $this->db->update('material_detail', $query_data);
 
     }
 

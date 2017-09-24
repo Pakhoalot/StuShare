@@ -23,4 +23,10 @@ class Tags_model extends CI_Model
 
     }
 
+    public function get_all_tag()
+    {
+        $query = $this->db->get('tag');
+        return $query->result_array();
+    }
+
 }
