@@ -103,6 +103,19 @@ class Materials_model extends CI_Model
 
     }
 
+    public function get_tag_by_id($id)
+    {
+        $query_data = array(
+            'material_id'=> $id
+        );
+        $query = $this->db->get_where('material_tag', $query_data);
+        $tags = array();
+        foreach($query->result_array() as $row){
+            array_push($tags, $row['tag']);
+        }
+        return $tags;
+    }
+
     public function get_detail_by_id($id)
     {
         $query_data = array(
@@ -123,5 +136,51 @@ class Materials_model extends CI_Model
 
     }
 
+    public function likes_increase($material_id)
+    {
+        $material_detail = $this->get_detail_by_id($material_id);
+        $query_data = array(
+            'likes' => ++$material_detail['likes']
+        );
+        $this->db->where('material_id', $material_id);
+        $this->db->update('material_detail', $query_data);
+    }
+
+
+
+    public function set_material_category($material_id, $category)
+    {
+        $this->create_category($category);
+        $query_data = array(
+            'material_id'=>$material_id,
+            'cate_name' => $category
+        );
+        $query = $this->db->get_where('material_category', $query_data);
+        if(empty($query->row_array())){
+            $this->db->insert('material_category', $query_data);
+        }
+    }
+
+    public function create_category($category)
+    {
+        $query_data = array(
+            'cate_name' => $category
+        );
+        $this->db->replace('category', $query_data);
+
+    }
+
+    public function get_category_by_id($id)
+    {
+        $query_data = array(
+            'material_id'=> $id
+        );
+        $query = $this->db->get_where('material_category', $query_data);
+        $categorys = array();
+        foreach($query->result_array() as $row){
+            array_push($categorys, $row['cate_name']);
+        }
+        return $categorys;
+    }
 
 }

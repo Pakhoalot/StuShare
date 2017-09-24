@@ -49,7 +49,9 @@ class User extends CI_Controller
             echo json_encode($json);
         }
     }
-
+    /*
+     *
+     */
     public function login(){
         $user['email'] = $this->input->post('email');
         $user['password'] = $this->input->post('password');
@@ -88,7 +90,9 @@ class User extends CI_Controller
             echo json_encode($json);
         }
     }
-
+    /*
+     *
+     */
     public function logout(){
         //销毁session
         $this->session->sess_destroy();
@@ -116,6 +120,34 @@ class User extends CI_Controller
             );
             echo json_encode($json);
         }
+    }
+    /*
+     * 为某人的学习资料点赞，同时这个赞会增加到这份学习资料和本人上
+     */
+    public function likes(){
+        $material_id = $this->input->post('material_id');
+        $this->load->model('materials_model');
+        $this->materials_model->likes_increase($material_id);
+        $material = $this->materials_model->get_material_by_id($material_id);
+        if(empty($material)||$material['state']!='exist'){
+            $json = array(
+                "status"=> 0,
+                "message"=> "no such material",
+                "materail_id"=> $material_id,
+            );
+            echo json_encode($json);
+            return ;
+        }
+        $this->users_model->likes_increase($material['owner']);
+        #返回成功信息
+        $json = array(
+            "status"=> 1,
+            "message"=> "succeed, find if success in database",
+            "materail_id"=> $material_id,
+        );
+        echo json_encode($json);
+        return ;
+
     }
     /*
      *

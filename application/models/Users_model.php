@@ -66,4 +66,14 @@ class Users_model extends CI_Model
         return false;
     }
 
+    public function likes_increase($owner)
+    {
+        $user = $this->get_user($owner);
+        $query_data = array(
+            'likes' => ++$user['likes']
+        );
+        $this->db->where('email', $user['email']);
+        $this->db->update('user_info', $query_data);
+    }
+
 }

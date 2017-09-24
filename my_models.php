@@ -20,6 +20,7 @@
  * @property Materials_model  $materials_model
  * @property Users_model      $users_model
  * @property Tags_model       $tags_model
+ * @property Categorys_model  $categorys_model
  */
 class my_models
 {

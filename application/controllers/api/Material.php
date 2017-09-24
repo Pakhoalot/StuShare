@@ -49,6 +49,7 @@ class Material extends CI_Controller
         $user['email'] = $this->input->post('email');
         $file_name = $this->input->post('file_name');
         $tag = $this->input->post('tag');
+        $category = $this->input->post('category');
         $description = $this->input->post('description');
 
         //定义上传文件配置段
@@ -64,7 +65,10 @@ class Material extends CI_Controller
 
 
         #处理文档位置, 新建文件夹
-        if(!file_exists($config['upload_path'])) mkdir($config['upload_path'], 0777, true);
+        if(!file_exists($config['upload_path'])){
+            $this->create_user_dir($config['upload_path']);
+
+        }
 
         $this->load->library('upload', $config);
 
@@ -78,6 +82,7 @@ class Material extends CI_Controller
                 'status'=> 0,
                 'file_name'=> $file_name,
                 'tag' => $tag,
+                'category' => $category,
                 'description'=>$description,
                 'message'=> $error['error']);
             echo json_encode($json);
@@ -96,11 +101,18 @@ class Material extends CI_Controller
                 if($tag == NULL) continue;
                 $this->materials_model->set_material_tag($material['id'], $tag);
             }
+            #写入category
+            $cate_array = explode(',', $category);
+            foreach($cate_array as $category){
+                if($category == NULL) continue;
+                $this->materials_model->set_material_category($material['id'], $category);
+            }
             #接口返回成功信息
             $json = array(
                 'status'=> 1,
                 'message'=> 'succeed',
                 'tag' => $tag_array,
+                'category'=> $cate_array,
                 'description' => $description,
                 'file' => array(
                     'file_id' => $material['id'],
@@ -124,11 +136,13 @@ class Material extends CI_Controller
         if(isset($material['full_path']) && $material['state']=='exist'){
             #添加下载量
             $this->materials_model->download_times_increase($material['id']);
-            force_download($material['full_path'], NULL, true);
+//            force_download($material['full_path'], NULL, true);
+            $file_url = substr($material['full_path'],8);
             $json = array(
                 'status' => 1,
                 'message' => 'succeed',
                 'file' => array(
+                    'file_url' => $file_url,
                     'file_id' => $material['id'],
                     'file_name' => $material['file_name'],
                     'owner' => $material['owner'],
@@ -182,6 +196,7 @@ class Material extends CI_Controller
         $row = 1;
         foreach ($result_array as $material){
             $material_detail = $this->materials_model->get_detail_by_id($material['id']);
+            $tags = $this->materials_model->get_tag_by_id($material['id']);
             array_push($json['material_list'], array(
                 'index'=> $row,
                 'file_id'=>$material['id'],
@@ -191,8 +206,9 @@ class Material extends CI_Controller
                 'type' => $material['type'],
                 'uptime' => $material['uptime'],
                 'description'=>$material_detail['description'],
-                'flowers' => $material_detail['flowers'],
-                'download_times' => $material_detail['download_times']
+                'likes' => $material_detail['likes'],
+                'download_times' => $material_detail['download_times'],
+                'tags' => $tags
             ));
             $row++;
         }
@@ -257,7 +273,7 @@ class Material extends CI_Controller
             'type' => $material['type'],
             'uptime' => $material['uptime'],
             'description'=>$material_detail['description'],
-            'flowers' => $material_detail['flowers'],
+            'likes' => $material_detail['likes'],
             'download_times' => $material_detail['download_times']
         );
 
@@ -338,6 +354,27 @@ class Material extends CI_Controller
     {
         $material = $this->materials_model->get_material_by_id($material_id);
         return !(empty($material)||$material['state'] != 'exist');
+    }
+
+    private function create_user_dir($upload_path)
+    {
+        mkdir($upload_path, 0777, true);
+        $myfile = fopen($upload_path . "index.html", "w");
+        $txt = "
+<!DOCTYPE html>
+    <html>
+    <head>
+        <title>403 Forbidden</title>
+    </head>
+    <body>
+    
+    <p>Directory access is forbidden.</p>
+    
+    </body>
+    </html>
+ ";
+        fwrite($myfile, $txt);
+        fclose($myfile);
     }
 
 }
