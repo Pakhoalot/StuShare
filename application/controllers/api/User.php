@@ -4,8 +4,9 @@
  * User: pakholeung
  * Date: 9/18/17
  * Time: 10:16 AM
+ * @property  util $util
  */
-include 'Util.php';
+
 
 class User extends CI_Controller
 {
@@ -16,7 +17,8 @@ class User extends CI_Controller
         $this->load->helper('url');
         $this->load->library('session');
         $this->load->helper('cookie');
-        Util::cors();
+        $this->load->library('util');
+        $this->util->cors();
     }
 
     public function index(){
@@ -102,7 +104,7 @@ class User extends CI_Controller
     }
 
     public function get_user(){
-        if(Util::is_login()){
+        if($this->util->is_login()){
             $json = array(
                 'status'=> 1,
                 'message'=> 'logged_in',

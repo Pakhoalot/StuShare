@@ -4,8 +4,8 @@
  * User: pakholeung
  * Date: 9/17/17
  * Time: 10:11 PM
+ * @property  util  $util
  */
-include 'Util.php';
 
 class Material extends CI_Controller
 {
@@ -18,7 +18,8 @@ class Material extends CI_Controller
         $this->load->model('materials_model');
         $this->load->helper('url');
         $this->load->helper('download');
-        Util::cors();
+        $this->load->library('util');
+        $this->util->cors();
 
     }
     /*
@@ -33,17 +34,6 @@ class Material extends CI_Controller
      */
     public function upload()
     {
-//        if(Util::is_login()){
-////            $user = Util::get_user_from_session();
-//        }
-//        else{
-//            $json = array(
-//                'status'=> 0,
-//                'message'=> 'user havent logged in');
-//            echo json_encode($json);
-//            return ;
-//        }
-
 
         //获取post信息
         $user['email'] = $this->input->post('email');
@@ -193,12 +183,11 @@ class Material extends CI_Controller
         );
         $result_array = $this->materials_model->get_material_list($sort_by, $offset, $total_row);
 
-        $row = 1;
         foreach ($result_array as $material){
             $material_detail = $this->materials_model->get_detail_by_id($material['id']);
             $tags = $this->materials_model->get_tag_by_id($material['id']);
+            $categorys = $this->materials_model->get_category_by_id($material['id']);
             array_push($json['material_list'], array(
-                'index'=> $row,
                 'file_id'=>$material['id'],
                 'file_name'=>$material['file_name'],
                 'owner' => $material['owner'],
@@ -208,7 +197,8 @@ class Material extends CI_Controller
                 'description'=>$material_detail['description'],
                 'likes' => $material_detail['likes'],
                 'download_times' => $material_detail['download_times'],
-                'tags' => $tags
+                'tags' => $tags,
+                'category'=> $categorys
             ));
             $row++;
         }

@@ -47,6 +47,24 @@ class Materials_model extends CI_Model
         return $query->row_array();
     }
 
+    public function get_all_by_id($id){
+        $material = $this->get_material_by_id($id);
+        $material_detail = $this->get_detail_by_id($id);
+
+        $tags = $this->get_tag_by_id($id);
+        $categories = $this->get_category_by_id($id);
+        $result = array_merge(
+            $material,
+            $material_detail,
+            array('tags'=>$tags),
+            array('categories'=>$categories)
+        );
+        unset($result['id']);
+        unset($result['full_path']);
+        unset($result['file_path']);
+        return $result;
+    }
+
     public function get_material_by_id($file_id)
     {
         $query_data = array(
@@ -56,6 +74,41 @@ class Materials_model extends CI_Model
         #query
         $query = $this->db->get_where('material_attribute', $query_data);
         return $query->row_array();
+    }
+
+    public function get_detail_by_id($id)
+    {
+        $query_data = array(
+            'material_id' => $id,
+        );
+        $query = $this->db->get_where('material_detail', $query_data);
+        return $query->row_array();
+    }
+
+    public function get_tag_by_id($id)
+    {
+        $query_data = array(
+            'material_id'=> $id
+        );
+        $query = $this->db->get_where('material_tag', $query_data);
+        $tags = array();
+        foreach($query->result_array() as $row){
+            array_push($tags, $row['tag']);
+        }
+        return $tags;
+    }
+
+    public function get_category_by_id($id)
+    {
+        $query_data = array(
+            'material_id'=> $id
+        );
+        $query = $this->db->get_where('material_category', $query_data);
+        $categories = array();
+        foreach($query->result_array() as $row){
+            array_push($categories, $row['cate_name']);
+        }
+        return $categories;
     }
 
     public function get_material_list($sort_by, $offset, $total_row)
@@ -74,11 +127,24 @@ class Materials_model extends CI_Model
     public function set_material_description($material_id, $description)
     {
         $query_data = array(
-            'description' => $description
+            'material_id' => $material_id
         );
-        $this->db->where('material_id', $material_id);
-        $this->db->update('material_detail', $query_data);
+        $query = $this->db->get_where('material_detail', $query_data);
 
+        if(empty($query->row_array())){
+            $query_data = array(
+                'material_id' => $material_id,
+                'description' => $description
+            );
+            $this->db->insert('material_detail', $query_data);
+        }
+        else{
+            $query_data = array(
+                'description' => $description
+            );
+            $this->db->where('material_id', $material_id);
+            $this->db->update('material_detail', $query_data);
+        }
     }
 
     public function set_material_tag($material_id, $tag)
@@ -103,28 +169,6 @@ class Materials_model extends CI_Model
 
     }
 
-    public function get_tag_by_id($id)
-    {
-        $query_data = array(
-            'material_id'=> $id
-        );
-        $query = $this->db->get_where('material_tag', $query_data);
-        $tags = array();
-        foreach($query->result_array() as $row){
-            array_push($tags, $row['tag']);
-        }
-        return $tags;
-    }
-
-    public function get_detail_by_id($id)
-    {
-        $query_data = array(
-            'material_id' => $id,
-        );
-        $query = $this->db->get_where('material_detail', $query_data);
-        return $query->row_array();
-    }
-
     public function download_times_increase($id)
     {
         $material_detail = $this->get_detail_by_id($id);
@@ -146,8 +190,6 @@ class Materials_model extends CI_Model
         $this->db->update('material_detail', $query_data);
     }
 
-
-
     public function set_material_category($material_id, $category)
     {
         $this->create_category($category);
@@ -168,19 +210,6 @@ class Materials_model extends CI_Model
         );
         $this->db->replace('category', $query_data);
 
-    }
-
-    public function get_category_by_id($id)
-    {
-        $query_data = array(
-            'material_id'=> $id
-        );
-        $query = $this->db->get_where('material_category', $query_data);
-        $categorys = array();
-        foreach($query->result_array() as $row){
-            array_push($categorys, $row['cate_name']);
-        }
-        return $categorys;
     }
 
 }
