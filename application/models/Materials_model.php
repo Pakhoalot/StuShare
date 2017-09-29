@@ -32,6 +32,7 @@ class Materials_model extends CI_Model
         #query
         $query = $this->db->insert('material_attribute', $query_data);
         $material = $this->get_material_by_name_and_owner($file['file_name'], $email);
+        $query = $this->db->insert('material_detail', array('material_id'=>$material['id']));
         return $material;
     }
 
@@ -126,25 +127,12 @@ class Materials_model extends CI_Model
 
     public function set_material_description($material_id, $description)
     {
-        $query_data = array(
-            'material_id' => $material_id
-        );
-        $query = $this->db->get_where('material_detail', $query_data);
-
-        if(empty($query->row_array())){
-            $query_data = array(
-                'material_id' => $material_id,
-                'description' => $description
-            );
-            $this->db->insert('material_detail', $query_data);
-        }
-        else{
             $query_data = array(
                 'description' => $description
             );
             $this->db->where('material_id', $material_id);
             $this->db->update('material_detail', $query_data);
-        }
+
     }
 
     public function set_material_tag($material_id, $tag)

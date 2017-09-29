@@ -98,8 +98,10 @@ class User extends CI_Controller
     public function logout(){
         //销毁session
         $this->session->sess_destroy();
-        $json = array('status'=> 1,
-            'message'=> 'OK');
+        $json = array(
+            'status'=> 1,
+            'message'=> 'OK'
+        );
         echo json_encode($json);
     }
 
@@ -149,6 +151,34 @@ class User extends CI_Controller
         );
         echo json_encode($json);
         return ;
+
+    }
+
+    public function set_information(){
+
+        $user_detail['email'] = $this->input->post('email');
+        $user_detail['phone'] = $this->input->post('phone');
+        $user_detail['adress'] = $this->input->post('adress');
+        $user_detail['grade'] = $this->input->post('grade');
+        $user_detail['major'] = $this->input->post('major');
+
+        if(!$this->users_model->user_exist($user_detail)){
+            $json = array(
+                'status'=> 0,
+                'message'=> 'user doesnt exist',
+                'email' => $user_detail['email']
+            );
+            echo json_encode($json);
+        }
+        else{
+            $this->users_model->set_user_detail($user_detail);
+            $json = array(
+                'status'=> 1,
+                'message'=> 'OK',
+                'user' => $user_detail
+            );
+            echo json_encode($json);
+        }
 
     }
     /*

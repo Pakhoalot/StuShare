@@ -52,6 +52,7 @@ class Material extends CI_Controller
                                        avi|mp4|mkv|mov|flv';
 
         $config['file_name'] = $file_name;
+        $config['max_size'] = 0;//无限制
 
 
         #处理文档位置, 新建文件夹
@@ -105,7 +106,7 @@ class Material extends CI_Controller
                 'category'=> $cate_array,
                 'description' => $description,
                 'file' => array(
-                    'file_id' => $material['id'],
+                    'material_id' => $material['id'],
                     'file_name' => $material['file_name'],
                     'owner' => $material['owner'],
                     'size' => $material['size'],
@@ -121,8 +122,8 @@ class Material extends CI_Controller
      *
      */
     public function download(){
-        $file_id = $this->input->post('file_id');
-        $material = $this->materials_model->get_material_by_id($file_id);
+        $material_id = $this->input->post('material_id');
+        $material = $this->materials_model->get_material_by_id($material_id);
         if(isset($material['full_path']) && $material['state']=='exist'){
             #添加下载量
             $this->materials_model->download_times_increase($material['id']);
@@ -133,7 +134,7 @@ class Material extends CI_Controller
                 'message' => 'succeed',
                 'file' => array(
                     'file_url' => $file_url,
-                    'file_id' => $material['id'],
+                    'material_id' => $material['id'],
                     'file_name' => $material['file_name'],
                     'owner' => $material['owner'],
                     'size' => $material['size'],
@@ -147,7 +148,7 @@ class Material extends CI_Controller
             $json = array(
                 'status' => 0,
                 'message' => 'file_isnt exist',
-                'file_id' => $file_id,
+                'material_id' => $material_id,
             );
             echo json_encode($json);
         }
@@ -188,7 +189,7 @@ class Material extends CI_Controller
             $tags = $this->materials_model->get_tag_by_id($material['id']);
             $categorys = $this->materials_model->get_category_by_id($material['id']);
             array_push($json['material_list'], array(
-                'file_id'=>$material['id'],
+                'material_id'=>$material['id'],
                 'file_name'=>$material['file_name'],
                 'owner' => $material['owner'],
                 'size' => $material['size'],
@@ -200,7 +201,7 @@ class Material extends CI_Controller
                 'tags' => $tags,
                 'category'=> $categorys
             ));
-            $row++;
+
         }
 
         echo json_encode($json);
@@ -248,7 +249,7 @@ class Material extends CI_Controller
             $json = array(
                 'status'=> 0,
                 'message'=> 'no such file',
-                'file_id'=>$material['id'],
+                'material_id'=>$material['id'],
             );
             echo json_encode($json);
             return ;
@@ -256,7 +257,7 @@ class Material extends CI_Controller
         $json = array(
             'status'=> 1,
             'message'=> 'succeed',
-            'file_id'=>$material['id'],
+            'material_id'=>$material['id'],
             'file_name'=>$material['file_name'],
             'owner' => $material['owner'],
             'size' => $material['size'],
@@ -325,7 +326,7 @@ class Material extends CI_Controller
             'status' => 1,
             'message' => 'succeed',
             'file' => array(
-                'file_id' => $material['id'],
+                'material_id' => $material['id'],
                 'file_name' => $material['file_name'],
                 'owner' => $material['owner'],
                 'size' => $material['size'],
@@ -334,7 +335,6 @@ class Material extends CI_Controller
         );
         echo json_encode($json);
     }
-
 
 
     /*

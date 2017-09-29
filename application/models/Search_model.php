@@ -16,9 +16,6 @@ class Search_model extends CI_Model
 
     public function search_material_name($search_key)
     {
-        $query_data = array(
-            'file_name' => $search_key
-        );
         $this->db->like('file_name', $search_key);
         $query = $this->db->get('material_attribute');
         $material_id_array = array();
@@ -30,9 +27,7 @@ class Search_model extends CI_Model
 
     public function search_material_tag($search_key)
     {
-        $query_data = array(
-            'tag' => $search_key
-        );
+
         $this->db->like('tag', $search_key);
         $query = $this->db->get('material_tag');
         $material_id_array = array();
@@ -41,6 +36,50 @@ class Search_model extends CI_Model
         }
         return $material_id_array;
     }
+
+    public function count_search_key($search_key)
+    {
+        $query = $this->db->get_where('search_key', array('search_key'=>$search_key));
+
+        if(empty($query->row_array())){
+            $query_data = array(
+                'search_key'=>$search_key,
+            );
+            $this->db->insert('search_key', $query_data);
+        }
+
+        $key = $this->db->get_where('search_key', array('search_key'=>$search_key));
+        $query_data = array(
+            'quote_times' => ++$key->row_array()['quote_times']
+        );
+        $this->db->where('search_key', $search_key);
+        $this->db->update('search_key', $query_data);
+
+    }
+
+    public function search_user_email($search_key){
+
+        $this->db->like('email', $search_key);
+        $query = $this->db->get('user_info');
+        $email_array = array();
+        foreach($query->result_array() as $user){
+            array_push($email_array, $user['email']);
+        }
+        return $email_array;
+    }
+
+    public function search_user_nickname($search_key){
+
+        $this->db->like('nickname', $search_key);
+        $query = $this->db->get('user_info');
+        $email_array = array();
+        foreach($query->result_array() as $user){
+            array_push($email_array, $user['email']);
+        }
+        return $email_array;
+    }
+
+
 
 
 }
